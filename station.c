@@ -181,8 +181,54 @@ void add_train_car(TrainStation *station, int platform, int weight)
  * platform: peronul pe care se afla trenul
  * weight: greutatea vagonului scos
  */
+
 void remove_train_cars(TrainStation *station, int platform, int weight)
 {
+    if (station == NULL || station->platforms == NULL)
+        return;
+
+    if (weight < 0)
+        return;
+
+    if (station->platforms_no > platform && platform >= 0)
+        if (station->platforms[platform]->locomotive_power != -1)
+        {
+            if (station->platforms[platform]->train_cars == NULL)
+                return;
+
+            TrainCar *aux = station->platforms[platform]->train_cars;
+            TrainCar *prev;
+
+            while (aux != NULL)
+            {
+                if (aux->weight == weight)
+                {
+                    if (aux == station->platforms[platform]->train_cars)
+                    {
+                        station->platforms[platform]->train_cars = aux->next;
+                        free(aux);
+                        aux = station->platforms[platform]->train_cars;
+                    }
+                    else if (aux->next == NULL)
+                    {
+                        prev->next = NULL;
+                        free(aux);
+                        aux = NULL;
+                    }
+                    else
+                    {
+                        prev->next = aux->next;
+                        free(aux);
+                        aux = prev->next;
+                    }
+                }
+                else
+                {
+                    prev = aux;
+                    aux = aux->next;
+                }
+            }
+        }
 }
 
 /* Muta o secventa de vagoane dintr-un tren in altul.
