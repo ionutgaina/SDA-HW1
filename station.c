@@ -240,9 +240,110 @@ void remove_train_cars(TrainStation *station, int platform, int weight)
  * platform_b: peronul pe care se afla trenul unde se adauga vagoanele
  * pos_b: pozitia unde se adauga secventa de vagoane
  */
+typedef struct TrainPosition
+{
+    TrainCar *prev;
+    TrainCar *current;
+} TrainPosition;
+
+TrainPosition *return_points(TrainCar *train_car, int pos)
+{
+    TrainPosition *train_point = malloc(sizeof(TrainPosition));
+    int c = 1;
+    train_point->current = train_car;
+    train_point->prev = NULL;
+    while (train_point->current != NULL && c != pos)
+    {
+        train_point->prev = train_point->current;
+        train_point->current = train_point->current->next;
+        c++;
+    }
+    if (c != pos)
+    {
+        free(train_point);
+        return NULL;
+    }
+    return train_point;
+}
+
+void free_train_position(TrainPosition *car)
+{
+    if (car != NULL)
+        free(car);
+}
+
+void move_train_car(Train *train_a, Train *train_b, int pos_a, int pos_b)
+{
+    TrainPosition *traincar_a = return_points(train_a->train_cars, pos_a);
+    TrainPosition *traincar_b = return_points(train_b->train_cars, pos_b);
+
+    if (traincar_a == NULL || (traincar_b == NULL && pos_b != 1))
+        {   
+            free_train_position(traincar_a);
+            free_train_position(traincar_b);
+            return;
+        }
+
+    if (traincar_a->current == NULL)
+    {
+        free_train_position(traincar_a);
+        free_train_position(traincar_b);
+        return;
+    }
+
+    if (traincar_b->prev == NULL)
+        train_b->train_cars = traincar_a->current;
+    else
+        traincar_b->prev->next = traincar_a->current;
+
+
+    if (traincar_a->prev == NULL)
+        {
+            train_a->train_cars = traincar_a->current->next;
+        }
+    else
+        {
+            traincar_a->prev->next = traincar_a->current->next;
+        }
+
+    traincar_a->current->next = traincar_b->current;
+
+    free_train_position(traincar_a);
+    free_train_position(traincar_b);
+}
+
 void move_train_cars(TrainStation *station, int platform_a, int pos_a,
                      int cars_no, int platform_b, int pos_b)
 {
+    if (station == NULL)
+        return;
+    if (station->platforms == NULL)
+        return;
+    Train *locomotive_a = station->platforms[platform_a];
+    Train *locomotive_b = station->platforms[platform_b];
+    if (locomotive_a == NULL || locomotive_b == NULL)
+        return;
+    if (locomotive_a->train_cars == NULL)
+        return;
+    if (pos_a < 1 || pos_b < 1 || cars_no < 0)
+        return;
+
+    TrainPosition *traincar_limit = return_points(locomotive_a->train_cars, pos_a + cars_no-1);
+    if ( traincar_limit == NULL )
+        {
+            free_train_position(traincar_limit);
+            return;
+        }
+    if ( traincar_limit->current == NULL )
+        {
+            free_train_position(traincar_limit);
+            return;
+        }
+    for ( int i = 0 ; i < cars_no; i++ )
+    {
+        move_train_car(locomotive_a, locomotive_b, pos_a, pos_b+i);
+    }
+    free_train_position(traincar_limit);
 }
 
 /* Gaseste trenul cel mai rapid.
