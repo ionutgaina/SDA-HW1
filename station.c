@@ -592,7 +592,8 @@ void fix_overload_train(TrainStation *station)
     Train *locomotive = station->platforms[platform];
     TrainCar *current = locomotive->train_cars;
     int weight = weight_train(locomotive);
-    int optimal_weight = 0;
+    int optimal_weight = -1;
+    int aux;
     while (current != NULL)
     {
         if (weight + current->weight == 0)
@@ -600,11 +601,21 @@ void fix_overload_train(TrainStation *station)
             optimal_weight = current->weight;
             break;
         }
-        if (weight + current->weight < 0 && optimal_weight > current->weight )
+
+        if (weight + current->weight != 0)
         {
-            optimal_weight = current->weight;
+            if (optimal_weight == -1)
+            {
+                optimal_weight = current->weight;
+            }
+            if (abs(optimal_weight + weight) != abs(weight + current->weight))
+            {
+                if ( optimal_weight > current->weight)  
+                    optimal_weight = current->weight;
+            }
         }
         current = current->next;
     }
+
     remove_train_cars(station, platform, optimal_weight);
 }
