@@ -498,60 +498,49 @@ int find_optimal_train(TrainStation *station)
 
 int find_heaviest_sequence_train(TrainStation *station, int cars_no, TrainCar **start_car)
 {
-    // if (station == NULL)
-    //     return -1;
-    // if (station->platforms == NULL)
-    //     return -1;
+    if (station == NULL)
+        return -1;
+    if (station->platforms == NULL)
+        return -1;
 
-    // int platform, train_weight, weight;
-    // platform = -1;
+    int platform, weight, j;
+    platform = -1;
+    weight = 0;
 
-    // TrainCar *current, *aux_car, *aux2_car;
-    // for (int i = 0; i < station->platforms_no; i++)
-    // {
-    //     if (station->platforms[i] != NULL)
-    //     {
-    //         if (station->platforms[i]->train_cars != NULL)
-    //         {
-    //             for (int c = 0; c < cars_no; c++)
-    //             {
-    //                 train_weight = 0;
-    //                 current = station->platforms[i]->train_cars;
-
-    //                 for (int j = 0; j < c && current != NULL; j++)
-    //                 {
-    //                     current = current->next;
-    //                 }
-
-    //                 aux_car = current;
-    //                 for (int j = c; j < cars_no + c && current != NULL; j++)
-    //                 {
-    //                     train_weight += current->weight;
-    //                     current = current->next;
-    //                 }
-    //                 if (current == NULL )
-    //                     aux_car == NULL;
-
-    //                 if (platform == -1 && aux_car != NULL)
-    //                             weight = train_weight;
-    
-    //                 if (train_weight >= weight && aux_car != NULL)
-    //                 {
-    //                     aux2_car = aux_car;
-    //                     start_car = &aux2_car;
-    //                     weight = train_weight;
-    //                     platform = i;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // if (platform == -1)
-    //     {
-    //         start_car = NULL;
-    //         return -1;
-    //     }
-    // return platform;
+    TrainCar *current1, *current2;
+    for (int i = 0; i < station->platforms_no; i++)
+    {
+        if (station->platforms[i] != NULL)
+        {
+            if (station->platforms[i]->train_cars != NULL)
+            {
+                current1 = station->platforms[i]->train_cars;
+                while (current1 != NULL)
+                {
+                    int train_weight = 0;
+                    current2 = current1;
+                    for (j = 0; j < cars_no && current2 != NULL; j++)
+                    {
+                        train_weight += current2->weight;
+                        current2 = current2->next;
+                    }
+                    if (train_weight > weight && j == cars_no)
+                    {
+                        weight = train_weight;
+                        *start_car = current1;
+                        platform = i;
+                    }
+                    current1 = current1->next;
+                }
+            }
+        }
+    }
+    if (platform == -1)
+    {
+        *start_car = NULL;
+        return -1;
+    }
+    return platform;
 }
 
 /* Ordoneaza vagoanele dintr-un tren in ordinea descrescatoare a greutatilor.
@@ -560,30 +549,34 @@ int find_heaviest_sequence_train(TrainStation *station, int cars_no, TrainCar **
  * platform: peronul pe care se afla trenul
  */
 
-
-
 void order_train(TrainStation *station, int platform)
 {
-    // if (station == NULL || station->platforms == NULL)
-    //     return;
-    // if (station->platforms[platform]->train_cars == NULL )
-    //     return;
+    if (station == NULL || station->platforms == NULL)
+        return;
+    if (station->platforms[platform]->train_cars == NULL)
+        return;
 
-    // TrainCar *current1, *current2;
+    TrainCar *current1, *current2;
 
-    // current1 = station->platforms[platform]->train_cars;
-    // current2 = current1;
+    current1 = station->platforms[platform]->train_cars;
+    current2 = current1;
 
-    // int c, max ;
-    // max = 0;
-    // while ( current1 != NULL )
-    // {   
-    //     while ( current2 != NULL )
-    //     {   
-
-    //         current2 = current2->next;
-    //     }
-    // }
+    int max, aux;
+    while (current1 != NULL)
+    {
+        current2 = current1->next;
+        while (current2 != NULL)
+        {
+            if (current2->weight > current1->weight)
+            {
+                aux = current1->weight;
+                current1->weight = current2->weight;
+                current2->weight = aux;
+            }
+            current2 = current2->next;
+        }
+        current1 = current1->next;
+    }
 }
 
 /* Scoate un vagon din trenul supraincarcat.
@@ -592,4 +585,26 @@ void order_train(TrainStation *station, int platform)
  */
 void fix_overload_train(TrainStation *station)
 {
+    int platform = find_overload_train(station);
+    if (platform == -1)
+        return;
+
+    Train *locomotive = station->platforms[platform];
+    TrainCar *current = locomotive->train_cars;
+    int weight = weight_train(locomotive);
+    int optimal_weight = 0;
+    while (current != NULL)
+    {
+        if (weight + current->weight == 0)
+        {
+            optimal_weight = current->weight;
+            break;
+        }
+        if (weight + current->weight < 0 && optimal_weight > current->weight )
+        {
+            optimal_weight = current->weight;
+        }
+        current = current->next;
+    }
+    remove_train_cars(station, platform, optimal_weight);
 }
