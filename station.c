@@ -1,5 +1,7 @@
 #include <stdio.h>
+
 #include <stdlib.h>
+
 #include <string.h>
 
 #include "station.h"
@@ -10,21 +12,19 @@
  *
  * return: gara creata
  */
-TrainStation *open_train_station(int platforms_no)
-{
-    if (platforms_no <= 0)
-        return NULL;
-    TrainStation *station = malloc(sizeof(TrainStation));
+TrainStation * open_train_station(int platforms_no) {
+  if (platforms_no <= 0)
+    return NULL;
+  TrainStation * station = malloc(sizeof(TrainStation));
 
-    station->platforms_no = platforms_no;
-    station->platforms = malloc(platforms_no * sizeof(Train *));
-    for (int i = 0; i < platforms_no; i++)
-    {
-        station->platforms[i] = malloc(sizeof(Train));
-        station->platforms[i]->locomotive_power = -1;
-        station->platforms[i]->train_cars = NULL;
-    }
-    return station;
+  station -> platforms_no = platforms_no;
+  station -> platforms = malloc(platforms_no * sizeof(Train * ));
+  for (int i = 0; i < platforms_no; i++) {
+    station -> platforms[i] = malloc(sizeof(Train));
+    station -> platforms[i] -> locomotive_power = -1;
+    station -> platforms[i] -> train_cars = NULL;
+  }
+  return station;
 }
 
 /* Elibereaza memoria alocata pentru gara.
@@ -32,41 +32,35 @@ TrainStation *open_train_station(int platforms_no)
  * station: gara existenta
  */
 
-void close_train_car(TrainCar *train_cars)
-{
-    if (train_cars == NULL)
-        return;
-    else
-        close_train_car(train_cars->next);
-    free(train_cars);
+void close_train_car(TrainCar * train_cars) {
+  if (train_cars == NULL)
+    return;
+  else
+    close_train_car(train_cars -> next);
+  free(train_cars);
 }
 
-void close_train_station(TrainStation *station)
-{
-    if (!station)
-        return;
+void close_train_station(TrainStation * station) {
+  if (!station)
+    return;
 
-    if (!station->platforms)
-    {
-        free(station);
-        return;
-    }
-
-    int platforms_no = station->platforms_no;
-
-    for (int i = 0; i < platforms_no; i++)
-    {
-        if (station->platforms[i] != NULL)
-        {
-            if (station->platforms[i]->train_cars != NULL)
-            {
-                close_train_car(station->platforms[i]->train_cars);
-            }
-            free(station->platforms[i]);
-        }
-    }
-    free(station->platforms);
+  if (!station -> platforms) {
     free(station);
+    return;
+  }
+
+  int platforms_no = station -> platforms_no;
+
+  for (int i = 0; i < platforms_no; i++) {
+    if (station -> platforms[i] != NULL) {
+      if (station -> platforms[i] -> train_cars != NULL) {
+        close_train_car(station -> platforms[i] -> train_cars);
+      }
+      free(station -> platforms[i]);
+    }
+  }
+  free(station -> platforms);
+  free(station);
 }
 
 /* Afiseaza trenurile stationate in gara.
@@ -74,29 +68,25 @@ void close_train_station(TrainStation *station)
  * station: gara existenta
  * f: fisierul in care se face afisarea
  */
-void show_existing_trains(TrainStation *station, FILE *f)
-{
-    if (station == NULL || station->platforms == NULL)
-        return;
+void show_existing_trains(TrainStation * station, FILE * f) {
+  if (station == NULL || station -> platforms == NULL)
+    return;
 
-    int platforms_no = station->platforms_no;
+  int platforms_no = station -> platforms_no;
 
-    for (int i = 0; i < platforms_no; i++)
-    {
-        fprintf(f, "%d: ", i);
+  for (int i = 0; i < platforms_no; i++) {
+    fprintf(f, "%d: ", i);
 
-        if (station->platforms[i]->locomotive_power != -1)
-        {
-            fprintf(f, "(%d)", station->platforms[i]->locomotive_power);
-            TrainCar *train = station->platforms[i]->train_cars;
-            while (train != NULL)
-            {
-                fprintf(f, "-|%d|", train->weight);
-                train = train->next;
-            }
-        }
-        fprintf(f, "\n");
+    if (station -> platforms[i] -> locomotive_power != -1) {
+      fprintf(f, "(%d)", station -> platforms[i] -> locomotive_power);
+      TrainCar * train = station -> platforms[i] -> train_cars;
+      while (train != NULL) {
+        fprintf(f, "-|%d|", train -> weight);
+        train = train -> next;
+      }
     }
+    fprintf(f, "\n");
+  }
 }
 
 /*
@@ -104,17 +94,15 @@ void show_existing_trains(TrainStation *station, FILE *f)
  * platform: peronul pe care se adauga locomotiva
  * locomotive_power: puterea de tractiune a locomotivei
  */
-void arrive_train(TrainStation *station, int platform, int locomotive_power)
-{
-    if (station == NULL || station->platforms == NULL)
-        return;
+void arrive_train(TrainStation * station, int platform, int locomotive_power) {
+  if (station == NULL || station -> platforms == NULL)
+    return;
 
-    if (station->platforms_no > platform && platform >= 0)
-        if (station->platforms[platform]->locomotive_power == -1)
-        {
-            station->platforms[platform]->train_cars = NULL;
-            station->platforms[platform]->locomotive_power = locomotive_power;
-        }
+  if (station -> platforms_no > platform && platform >= 0)
+    if (station -> platforms[platform] -> locomotive_power == -1) {
+      station -> platforms[platform] -> train_cars = NULL;
+      station -> platforms[platform] -> locomotive_power = locomotive_power;
+    }
 }
 
 /* Elibereaza un peron.
@@ -122,18 +110,16 @@ void arrive_train(TrainStation *station, int platform, int locomotive_power)
  * station: gara existenta
  * platform: peronul de pe care pleaca trenul
  */
-void leave_train(TrainStation *station, int platform)
-{
-    if (station == NULL || station->platforms == NULL)
-        return;
+void leave_train(TrainStation * station, int platform) {
+  if (station == NULL || station -> platforms == NULL)
+    return;
 
-    if (station->platforms_no > platform && platform >= 0)
-    {
-        if (station->platforms[platform]->train_cars != NULL)
-            close_train_car(station->platforms[platform]->train_cars);
-        station->platforms[platform]->train_cars = NULL;
-        station->platforms[platform]->locomotive_power = -1;
-    }
+  if (station -> platforms_no > platform && platform >= 0) {
+    if (station -> platforms[platform] -> train_cars != NULL)
+      close_train_car(station -> platforms[platform] -> train_cars);
+    station -> platforms[platform] -> train_cars = NULL;
+    station -> platforms[platform] -> locomotive_power = -1;
+  }
 }
 
 /* Adauga un vagon la capatul unui tren.
@@ -142,37 +128,32 @@ void leave_train(TrainStation *station, int platform)
  * platform: peronul pe care se afla trenul
  * weight: greutatea vagonului adaugat
  */
-void add_train_car(TrainStation *station, int platform, int weight)
-{
-    if (station == NULL || station->platforms == NULL)
+void add_train_car(TrainStation * station, int platform, int weight) {
+  if (station == NULL || station -> platforms == NULL)
+    return;
+
+  if (weight < 0)
+    return;
+
+  if (station -> platforms_no > platform && platform >= 0)
+    if (station -> platforms[platform] -> locomotive_power != -1) {
+      TrainCar * new_traincar = malloc(sizeof(TrainCar));
+      new_traincar -> next = NULL;
+      new_traincar -> weight = weight;
+
+      if (station -> platforms[platform] -> train_cars == NULL) {
+        station -> platforms[platform] -> train_cars = new_traincar;
         return;
-
-    if (weight < 0)
+      }
+      TrainCar * aux = station -> platforms[platform] -> train_cars;
+      while (aux -> next != NULL) {
+        aux = aux -> next;
+      }
+      if (aux -> next == NULL) {
+        aux -> next = new_traincar;
         return;
-
-    if (station->platforms_no > platform && platform >= 0)
-        if (station->platforms[platform]->locomotive_power != -1)
-        {
-            TrainCar *new_traincar = malloc(sizeof(TrainCar));
-            new_traincar->next = NULL;
-            new_traincar->weight = weight;
-
-            if (station->platforms[platform]->train_cars == NULL)
-            {
-                station->platforms[platform]->train_cars = new_traincar;
-                return;
-            }
-            TrainCar *aux = station->platforms[platform]->train_cars;
-            while (aux->next != NULL)
-            {
-                aux = aux->next;
-            }
-            if (aux->next == NULL)
-            {
-                aux->next = new_traincar;
-                return;
-            }
-        }
+      }
+    }
 }
 
 /* Scoate vagoanele de o anumita greutate dintr-un tren.
@@ -182,53 +163,42 @@ void add_train_car(TrainStation *station, int platform, int weight)
  * weight: greutatea vagonului scos
  */
 
-void remove_train_cars(TrainStation *station, int platform, int weight)
-{
-    if (station == NULL || station->platforms == NULL)
+void remove_train_cars(TrainStation * station, int platform, int weight) {
+  if (station == NULL || station -> platforms == NULL)
+    return;
+
+  if (weight < 0)
+    return;
+
+  if (station -> platforms_no > platform && platform >= 0)
+    if (station -> platforms[platform] -> locomotive_power != -1) {
+      if (station -> platforms[platform] -> train_cars == NULL)
         return;
 
-    if (weight < 0)
-        return;
+      TrainCar * aux = station -> platforms[platform] -> train_cars;
+      TrainCar * prev;
 
-    if (station->platforms_no > platform && platform >= 0)
-        if (station->platforms[platform]->locomotive_power != -1)
-        {
-            if (station->platforms[platform]->train_cars == NULL)
-                return;
-
-            TrainCar *aux = station->platforms[platform]->train_cars;
-            TrainCar *prev;
-
-            while (aux != NULL)
-            {
-                if (aux->weight == weight)
-                {
-                    if (aux == station->platforms[platform]->train_cars)
-                    {
-                        station->platforms[platform]->train_cars = aux->next;
-                        free(aux);
-                        aux = station->platforms[platform]->train_cars;
-                    }
-                    else if (aux->next == NULL)
-                    {
-                        prev->next = NULL;
-                        free(aux);
-                        aux = NULL;
-                    }
-                    else
-                    {
-                        prev->next = aux->next;
-                        free(aux);
-                        aux = prev->next;
-                    }
-                }
-                else
-                {
-                    prev = aux;
-                    aux = aux->next;
-                }
-            }
+      while (aux != NULL) {
+        if (aux -> weight == weight) {
+          if (aux == station -> platforms[platform] -> train_cars) {
+            station -> platforms[platform] -> train_cars = aux -> next;
+            free(aux);
+            aux = station -> platforms[platform] -> train_cars;
+          } else if (aux -> next == NULL) {
+            prev -> next = NULL;
+            free(aux);
+            aux = NULL;
+          } else {
+            prev -> next = aux -> next;
+            free(aux);
+            aux = prev -> next;
+          }
+        } else {
+          prev = aux;
+          aux = aux -> next;
         }
+      }
+    }
 }
 
 /* Muta o secventa de vagoane dintr-un tren in altul.
@@ -240,109 +210,95 @@ void remove_train_cars(TrainStation *station, int platform, int weight)
  * platform_b: peronul pe care se afla trenul unde se adauga vagoanele
  * pos_b: pozitia unde se adauga secventa de vagoane
  */
-typedef struct TrainPosition
-{
-    TrainCar *prev;
-    TrainCar *current;
-} TrainPosition;
+typedef struct TrainPosition {
+  TrainCar * prev;
+  TrainCar * current;
+}
+TrainPosition;
 
-TrainPosition *return_points(TrainCar *train_car, int pos)
-{
-    TrainPosition *train_point = malloc(sizeof(TrainPosition));
-    int c = 1;
-    train_point->current = train_car;
-    train_point->prev = NULL;
-    while (train_point->current != NULL && c != pos)
-    {
-        train_point->prev = train_point->current;
-        train_point->current = train_point->current->next;
-        c++;
-    }
-    if (c != pos)
-    {
-        free(train_point);
-        return NULL;
-    }
-    return train_point;
+TrainPosition * return_points(TrainCar * train_car, int pos) {
+  TrainPosition * train_point = malloc(sizeof(TrainPosition));
+  int c = 1;
+  train_point -> current = train_car;
+  train_point -> prev = NULL;
+  while (train_point -> current != NULL && c != pos) {
+    train_point -> prev = train_point -> current;
+    train_point -> current = train_point -> current -> next;
+    c++;
+  }
+  if (c != pos) {
+    free(train_point);
+    return NULL;
+  }
+  return train_point;
 }
 
-void free_train_position(TrainPosition *car)
-{
-    if (car != NULL)
-        free(car);
+void free_train_position(TrainPosition * car) {
+  if (car != NULL)
+    free(car);
 }
 
-void move_train_car(Train *train_a, Train *train_b, int pos_a, int pos_b)
-{
-    TrainPosition *traincar_a = return_points(train_a->train_cars, pos_a);
-    TrainPosition *traincar_b = return_points(train_b->train_cars, pos_b);
+void move_train_car(Train * train_a, Train * train_b, int pos_a, int pos_b) {
+  TrainPosition * traincar_a = return_points(train_a -> train_cars, pos_a);
+  TrainPosition * traincar_b = return_points(train_b -> train_cars, pos_b);
 
-    if (traincar_a == NULL || (traincar_b == NULL && pos_b != 1))
-    {
-        free_train_position(traincar_a);
-        free_train_position(traincar_b);
-        return;
-    }
-
-    if (traincar_a->current == NULL)
-    {
-        free_train_position(traincar_a);
-        free_train_position(traincar_b);
-        return;
-    }
-
-    if (traincar_b->prev == NULL)
-        train_b->train_cars = traincar_a->current;
-    else
-        traincar_b->prev->next = traincar_a->current;
-
-    if (traincar_a->prev == NULL)
-    {
-        train_a->train_cars = traincar_a->current->next;
-    }
-    else
-    {
-        traincar_a->prev->next = traincar_a->current->next;
-    }
-
-    traincar_a->current->next = traincar_b->current;
-
+  if (traincar_a == NULL || (traincar_b == NULL && pos_b != 1)) {
     free_train_position(traincar_a);
     free_train_position(traincar_b);
+    return;
+  }
+
+  if (traincar_a -> current == NULL) {
+    free_train_position(traincar_a);
+    free_train_position(traincar_b);
+    return;
+  }
+
+  if (traincar_b -> prev == NULL)
+    train_b -> train_cars = traincar_a -> current;
+  else
+    traincar_b -> prev -> next = traincar_a -> current;
+
+  if (traincar_a -> prev == NULL) {
+    train_a -> train_cars = traincar_a -> current -> next;
+  } else {
+    traincar_a -> prev -> next = traincar_a -> current -> next;
+  }
+
+  traincar_a -> current -> next = traincar_b -> current;
+
+  free_train_position(traincar_a);
+  free_train_position(traincar_b);
 }
 
-void move_train_cars(TrainStation *station, int platform_a, int pos_a,
-                     int cars_no, int platform_b, int pos_b)
-{
-    if (station == NULL)
-        return;
-    if (station->platforms == NULL)
-        return;
-    Train *locomotive_a = station->platforms[platform_a];
-    Train *locomotive_b = station->platforms[platform_b];
-    if (locomotive_a == NULL || locomotive_b == NULL)
-        return;
-    if (locomotive_a->train_cars == NULL)
-        return;
-    if (pos_a < 1 || pos_b < 1 || cars_no < 0)
-        return;
+void move_train_cars(TrainStation * station, int platform_a, int pos_a,
+  int cars_no, int platform_b, int pos_b) {
+  if (station == NULL)
+    return;
+  if (station -> platforms == NULL)
+    return;
+  Train * locomotive_a = station -> platforms[platform_a];
+  Train * locomotive_b = station -> platforms[platform_b];
+  if (locomotive_a == NULL || locomotive_b == NULL)
+    return;
+  if (locomotive_a -> train_cars == NULL)
+    return;
+  if (pos_a < 1 || pos_b < 1 || cars_no < 0)
+    return;
 
-    TrainPosition *traincar_limit = return_points(locomotive_a->train_cars, pos_a + cars_no - 1);
-    if (traincar_limit == NULL)
-    {
-        free_train_position(traincar_limit);
-        return;
-    }
-    if (traincar_limit->current == NULL)
-    {
-        free_train_position(traincar_limit);
-        return;
-    }
-    for (int i = 0; i < cars_no; i++)
-    {
-        move_train_car(locomotive_a, locomotive_b, pos_a, pos_b + i);
-    }
+  TrainPosition * traincar_limit = return_points(locomotive_a -> train_cars, pos_a + cars_no - 1);
+  if (traincar_limit == NULL) {
     free_train_position(traincar_limit);
+    return;
+  }
+  if (traincar_limit -> current == NULL) {
+    free_train_position(traincar_limit);
+    return;
+  }
+  for (int i = 0; i < cars_no; i++) {
+    move_train_car(locomotive_a, locomotive_b, pos_a, pos_b + i);
+  }
+  free_train_position(traincar_limit);
 }
 
 /* Gaseste trenul cel mai rapid.
@@ -352,56 +308,48 @@ void move_train_cars(TrainStation *station, int platform_a, int pos_a,
  * return: peronul pe care se afla trenul
  */
 
-int weight_train(Train *locomotive)
-{
-    int weight = 0;
-    int locomotive_power = locomotive->locomotive_power;
+int weight_train(Train * locomotive) {
+  int weight = 0;
+  int locomotive_power = locomotive -> locomotive_power;
 
-    TrainCar *current = locomotive->train_cars;
+  TrainCar * current = locomotive -> train_cars;
 
-    while (current != NULL)
-    {
-        weight += current->weight;
-        current = current->next;
-    }
+  while (current != NULL) {
+    weight += current -> weight;
+    current = current -> next;
+  }
 
-    return locomotive_power - weight;
+  return locomotive_power - weight;
 }
 
-int find_express_train(TrainStation *station)
-{
-    if (station == NULL)
-        return -1;
-    if (station->platforms == NULL)
-        return -1;
+int find_express_train(TrainStation * station) {
+  if (station == NULL)
+    return -1;
+  if (station -> platforms == NULL)
+    return -1;
 
-    int platform, train_weight, weight;
-    platform = -1;
+  int platform, train_weight, weight;
+  platform = -1;
 
-    for (int i = 0; i < station->platforms_no; i++)
-    {
-        if (station->platforms[i] != NULL)
-        {
-            if (station->platforms[i]->locomotive_power != -1)
-            {
-                if (platform == -1)
-                {
-                    weight = train_weight = weight_train(station->platforms[i]);
-                    platform = i;
-                }
-
-                train_weight = weight_train(station->platforms[i]);
-                if (train_weight >= weight)
-                {
-                    platform = i;
-                    weight = train_weight;
-                }
-            }
+  for (int i = 0; i < station -> platforms_no; i++) {
+    if (station -> platforms[i] != NULL) {
+      if (station -> platforms[i] -> locomotive_power != -1) {
+        if (platform == -1) {
+          weight = train_weight = weight_train(station -> platforms[i]);
+          platform = i;
         }
+
+        train_weight = weight_train(station -> platforms[i]);
+        if (train_weight >= weight) {
+          platform = i;
+          weight = train_weight;
+        }
+      }
     }
-    if (platform == -1)
-        return -1;
-    return platform;
+  }
+  if (platform == -1)
+    return -1;
+  return platform;
 }
 
 /* Gaseste trenul supraincarcat.
@@ -410,40 +358,34 @@ int find_express_train(TrainStation *station)
  *
  * return: peronul pe care se afla trenul
  */
-int find_overload_train(TrainStation *station)
-{
-    if (station == NULL)
-        return -1;
-    if (station->platforms == NULL)
-        return -1;
+int find_overload_train(TrainStation * station) {
+  if (station == NULL)
+    return -1;
+  if (station -> platforms == NULL)
+    return -1;
 
-    int platform, train_weight, weight;
-    platform = -1;
+  int platform, train_weight, weight;
+  platform = -1;
 
-    for (int i = 0; i < station->platforms_no; i++)
-    {
-        if (station->platforms[i] != NULL)
-        {
-            if (station->platforms[i]->locomotive_power != -1)
-            {
-                if (platform == -1)
-                {
-                    weight = train_weight = weight_train(station->platforms[i]);
-                    platform = i;
-                }
-
-                train_weight = weight_train(station->platforms[i]);
-                if (train_weight <= weight)
-                {
-                    platform = i;
-                    weight = train_weight;
-                }
-            }
+  for (int i = 0; i < station -> platforms_no; i++) {
+    if (station -> platforms[i] != NULL) {
+      if (station -> platforms[i] -> locomotive_power != -1) {
+        if (platform == -1) {
+          weight = train_weight = weight_train(station -> platforms[i]);
+          platform = i;
         }
+
+        train_weight = weight_train(station -> platforms[i]);
+        if (train_weight <= weight) {
+          platform = i;
+          weight = train_weight;
+        }
+      }
     }
-    if (platform == -1 || weight >= 0)
-        return -1;
-    return platform;
+  }
+  if (platform == -1 || weight >= 0)
+    return -1;
+  return platform;
 }
 
 /* Gaseste trenul cu incarcatura optima.
@@ -452,40 +394,34 @@ int find_overload_train(TrainStation *station)
  *
  * return: peronul pe care se afla trenul
  */
-int find_optimal_train(TrainStation *station)
-{
-    if (station == NULL)
-        return -1;
-    if (station->platforms == NULL)
-        return -1;
+int find_optimal_train(TrainStation * station) {
+  if (station == NULL)
+    return -1;
+  if (station -> platforms == NULL)
+    return -1;
 
-    int platform, train_weight, weight;
-    platform = -1;
+  int platform, train_weight, weight;
+  platform = -1;
 
-    for (int i = 0; i < station->platforms_no; i++)
-    {
-        if (station->platforms[i] != NULL)
-        {
-            if (station->platforms[i]->locomotive_power != -1)
-            {
-                if (platform == -1)
-                {
-                    weight = train_weight = weight_train(station->platforms[i]);
-                    platform = i;
-                }
-
-                train_weight = weight_train(station->platforms[i]);
-                if (train_weight <= weight && train_weight > 0)
-                {
-                    platform = i;
-                    weight = train_weight;
-                }
-            }
+  for (int i = 0; i < station -> platforms_no; i++) {
+    if (station -> platforms[i] != NULL) {
+      if (station -> platforms[i] -> locomotive_power != -1) {
+        if (platform == -1) {
+          weight = train_weight = weight_train(station -> platforms[i]);
+          platform = i;
         }
+
+        train_weight = weight_train(station -> platforms[i]);
+        if (train_weight <= weight && train_weight > 0) {
+          platform = i;
+          weight = train_weight;
+        }
+      }
     }
-    if (platform == -1)
-        return -1;
-    return platform;
+  }
+  if (platform == -1)
+    return -1;
+  return platform;
 }
 
 /* Gaseste trenul cu incarcatura nedistribuita bine.
@@ -496,51 +432,43 @@ int find_optimal_train(TrainStation *station)
  * return: peronul pe care se afla trenul
  */
 
-int find_heaviest_sequence_train(TrainStation *station, int cars_no, TrainCar **start_car)
-{
-    if (station == NULL)
-        return -1;
-    if (station->platforms == NULL)
-        return -1;
+int find_heaviest_sequence_train(TrainStation * station, int cars_no, TrainCar ** start_car) {
+  if (station == NULL)
+    return -1;
+  if (station -> platforms == NULL)
+    return -1;
 
-    int platform, weight, j;
-    platform = -1;
-    weight = 0;
+  int platform, weight, j;
+  platform = -1;
+  weight = 0;
 
-    TrainCar *current1, *current2;
-    for (int i = 0; i < station->platforms_no; i++)
-    {
-        if (station->platforms[i] != NULL)
-        {
-            if (station->platforms[i]->train_cars != NULL)
-            {
-                current1 = station->platforms[i]->train_cars;
-                while (current1 != NULL)
-                {
-                    int train_weight = 0;
-                    current2 = current1;
-                    for (j = 0; j < cars_no && current2 != NULL; j++)
-                    {
-                        train_weight += current2->weight;
-                        current2 = current2->next;
-                    }
-                    if (train_weight > weight && j == cars_no)
-                    {
-                        weight = train_weight;
-                        *start_car = current1;
-                        platform = i;
-                    }
-                    current1 = current1->next;
-                }
-            }
+  TrainCar * current1, * current2;
+  for (int i = 0; i < station -> platforms_no; i++) {
+    if (station -> platforms[i] != NULL) {
+      if (station -> platforms[i] -> train_cars != NULL) {
+        current1 = station -> platforms[i] -> train_cars;
+        while (current1 != NULL) {
+          int train_weight = 0;
+          current2 = current1;
+          for (j = 0; j < cars_no && current2 != NULL; j++) {
+            train_weight += current2 -> weight;
+            current2 = current2 -> next;
+          }
+          if (train_weight > weight && j == cars_no) {
+            weight = train_weight;
+            * start_car = current1;
+            platform = i;
+          }
+          current1 = current1 -> next;
         }
+      }
     }
-    if (platform == -1)
-    {
-        *start_car = NULL;
-        return -1;
-    }
-    return platform;
+  }
+  if (platform == -1) {
+    * start_car = NULL;
+    return -1;
+  }
+  return platform;
 }
 
 /* Ordoneaza vagoanele dintr-un tren in ordinea descrescatoare a greutatilor.
@@ -549,73 +477,89 @@ int find_heaviest_sequence_train(TrainStation *station, int cars_no, TrainCar **
  * platform: peronul pe care se afla trenul
  */
 
-void order_train(TrainStation *station, int platform)
-{
-    if (station == NULL || station->platforms == NULL)
-        return;
-    if (station->platforms[platform]->train_cars == NULL)
-        return;
+void order_train(TrainStation * station, int platform) {
+  if (station == NULL || station -> platforms == NULL)
+    return;
+  if (station -> platforms[platform] -> train_cars == NULL)
+    return;
 
-    TrainCar *current1, *current2;
+  TrainCar * current1, * current2, * prev1, * prev2, * aux1, * aux2, * aux;
+  prev1 = prev2 = NULL;
+  current1 = station -> platforms[platform] -> train_cars;
+  current2 = current1;
 
-    current1 = station->platforms[platform]->train_cars;
-    current2 = current1;
+  while (current1 != NULL) {
+    current2 = current1 -> next;
+    while (current2 != NULL) {
+      if (current2 -> weight > current1 -> weight) {
+        if (current1 -> next == current2) {
+          if (prev1 == NULL) {
+            station -> platforms[platform] -> train_cars = current2;
+          } else {
+            prev1 -> next = current2;
+          }
+          current1 -> next = current2 -> next;
+          current2 -> next = current1;
+          aux = current1;
+          current1 = current2;
+          current2 = aux;
+        } else {
+          aux1 = current1 -> next;
+          aux2 = current2 -> next;
+          if (prev1 == NULL) {
+            station -> platforms[platform] -> train_cars = current2;
+          } else {
+            prev1 -> next = current2;
+          }
 
-    int max, aux;
-    while (current1 != NULL)
-    {
-        current2 = current1->next;
-        while (current2 != NULL)
-        {
-            if (current2->weight > current1->weight)
-            {
-                aux = current1->weight;
-                current1->weight = current2->weight;
-                current2->weight = aux;
-            }
-            current2 = current2->next;
+          current2 -> next = aux1;
+          prev2 -> next = current1;
+          current1 -> next = aux2;
+
+          aux = current1;
+          current1 = current2;
+          current2 = aux;
         }
-        current1 = current1->next;
+      }
+      prev2 = current2;
+      current2 = current2 -> next;
     }
+    prev1 = current1;
+    current1 = current1 -> next;
+  }
 }
 
 /* Scoate un vagon din trenul supraincarcat.
  *
  * station: gara existenta
  */
-void fix_overload_train(TrainStation *station)
-{
-    int platform = find_overload_train(station);
-    if (platform == -1)
-        return;
+void fix_overload_train(TrainStation * station) {
+  int platform = find_overload_train(station);
+  if (platform == -1)
+    return;
 
-    Train *locomotive = station->platforms[platform];
-    TrainCar *current = locomotive->train_cars;
-    int weight = weight_train(locomotive);
-    int optimal_weight = -1;
-    int aux;
-    while (current != NULL)
-    {
-        if (weight + current->weight == 0)
-        {
-            optimal_weight = current->weight;
-            break;
-        }
-
-        if (weight + current->weight != 0)
-        {
-            if (optimal_weight == -1)
-            {
-                optimal_weight = current->weight;
-            }
-            if (abs(optimal_weight + weight) != abs(weight + current->weight))
-            {
-                if ( optimal_weight > current->weight)  
-                    optimal_weight = current->weight;
-            }
-        }
-        current = current->next;
+  Train * locomotive = station -> platforms[platform];
+  TrainCar * current = locomotive -> train_cars;
+  int weight = weight_train(locomotive);
+  int optimal_weight = -1;
+  int aux;
+  while (current != NULL) {
+    if (weight + current -> weight == 0) {
+      optimal_weight = current -> weight;
+      break;
     }
 
-    remove_train_cars(station, platform, optimal_weight);
+    if (weight + current -> weight != 0) {
+      if (optimal_weight == -1) {
+        optimal_weight = current -> weight;
+      }
+      if (abs(optimal_weight + weight) != abs(weight + current -> weight)) {
+        if (optimal_weight > current -> weight)
+          optimal_weight = current -> weight;
+      }
+    }
+    current = current -> next;
+  }
+
+  remove_train_cars(station, platform, optimal_weight);
 }
